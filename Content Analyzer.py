@@ -28,7 +28,7 @@ def create_system_prompt(n: int, summary_language: str) -> str:
     return f"""
 You are an expert Content Analyzer and Linguist. Your task is to analyze the provided NEWS ARTICLE or TEXT.
 You must perform four major tasks:
-1.  **Summarize** the article briefly in 2-3 sentences.
+1.  **Summarize**: {summary_instruction}
 2.  **Analyze the Tone (Sentiment)** of the article (e.g., Positive, Negative, Neutral, Informative).
 3.  **Calculate the Frequency** of the {n} most important, non-stop-word nouns and verbs in the text.
 4.  **Assess Readability** and suggest a reader level (e.g., High School, College, General Public).
@@ -242,6 +242,7 @@ if st.button('🚀 วิเคราะห์เนื้อหา'):
                 st.code(json_response_text)
             except Exception as e:
                 st.error(f"❌ เกิดข้อผิดพลาดในการประมวลผลข้อมูล: {e}")
+
 
 
 
