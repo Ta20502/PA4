@@ -21,6 +21,14 @@ st.set_page_config(
 
 def create_system_prompt(n: int) -> str:
     """สร้าง System Prompt สำหรับ LLM เพื่อให้ได้ผลลัพธ์ JSON ตามที่กำหนด"""
+    if summary_language == "Thai":
+        summary_instruction = "Summarize the article briefly in 2-3 sentences. **The summary must be in Thai.**"
+    elif summary_language == "English":
+        summary_instruction = "Summarize the article briefly in 2-3 sentences. **The summary must be in English.**"
+    else:
+        # กรณีอื่น ๆ (เช่น 'Original') ให้ LLM ตัดสินใจเอง หรือใช้ภาษาเดิม
+        summary_instruction = "Summarize the article briefly in 2-3 sentences."
+
     return f"""
 You are an expert Content Analyzer and Linguist. Your task is to analyze the provided NEWS ARTICLE or TEXT.
 You must perform four major tasks:
@@ -97,6 +105,24 @@ with st.sidebar:
     )
     st.info(f"แสดงผลลัพธ์คำศัพท์สำคัญ {top_n_keywords} อันดับ")
 
+    st.markdown("---")
+    st.title("🗣️ การตั้งค่าภาษา")
+    
+    # **🔥 NEW: Select box สำหรับเลือกภาษาที่ต้องการสรุป**
+    summary_language = st.selectbox(
+        "เลือกภาษาสำหรับ **บทสรุป**",
+        options=["English", "Thai", "Original (ตามภาษาของบทความ)"],
+        index=0, # English เป็นค่าเริ่มต้น
+        help="ภาษาที่ใช้ในการสร้างข้อความสรุป (Summary Text) โดย AI"
+    )
+    # แปลงค่าที่เลือกจากภาษาไทยเป็นค่าที่จะใช้ใน prompt
+    if "Thai" in summary_language:
+        lang_code = "Thai"
+    elif "English" in summary_language:
+        lang_code = "English"
+    else:
+        lang_code = "Original"
+
 # --- 3.2 Main Content Area ---
 
 st.title('📰 Content Analyzer: เครื่องมือวิเคราะห์เนื้อหาเชิงลึก')
@@ -120,7 +146,7 @@ if st.button('🚀 วิเคราะห์เนื้อหา'):
         st.error("❌ โปรดป้อนข้อความบทความเพื่อทำการวิเคราะห์")
     else:
         # สร้าง SYSTEM_PROMPT ด้วยค่า N ที่ผู้ใช้เลือก
-        current_system_prompt = create_system_prompt(top_n_keywords)
+        current_system_prompt = create_system_prompt(top_n_keywords, lang_code)
         
         # 3.4 เรียกใช้ API และประมวลผล
         with st.spinner("⏳ กำลังวิเคราะห์เนื้อหาเชิงปริมาณ..."):
