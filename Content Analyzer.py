@@ -25,7 +25,7 @@ def create_system_prompt(n: int, summary_language: str) -> str:
     
     # 1. กำหนดคำสั่งภาษาสำหรับ Summary และการอธิบายผลลัพธ์
     if summary_language == "Thai":
-        summary_instruction = "Summarize the article briefly in 2-3 sentences. **Crucially, the summary MUST be written in the THAI language (ภาษาไทย).**"
+        summary_instruction = "**Write a CONCISE, NATURAL-SOUNDING, and EASY-TO-UNDERSTAND summary of the article in 2-3 sentences. Crucially, the summary MUST be written in the THAI language (ภาษาไทย).**"
         
         # *** คำสั่งบังคับให้แปลและอธิบายในภาษาไทย ***
         analysis_instruction = "The values for 'tone_analysis' and 'readability_level' MUST be translated into THAI (ภาษาไทย) AND **must include a brief, Thai-language explanation (1-2 sentences) of the rationale** for the chosen classification."
@@ -35,7 +35,7 @@ def create_system_prompt(n: int, summary_language: str) -> str:
         readability_example = "เช่น (Example): 'ระดับมหาวิทยาลัย: ใช้คำศัพท์เฉพาะทางและโครงสร้างประโยคซับซ้อน'"
         
     elif summary_language == "English":
-        summary_instruction = "Summarize the article briefly in 2-3 sentences. **Crucially, the summary MUST be written in the ENGLISH language.**"
+        summary_instruction = "**Write a CONCISE, NATURAL-SOUNDING, and EASY-TO-UNDERSTAND summary of the article in 2-3 sentences. Crucially, the summary MUST be written in the ENGLISH language.**"
         
         # *** คำสั่งบังคับให้แปลและอธิบายในภาษาอังกฤษ ***
         analysis_instruction = "The values for 'tone_analysis' and 'readability_level' MUST be written in ENGLISH AND **must include a brief, English-language explanation (1-2 sentences) of the rationale** for the chosen classification."
@@ -262,6 +262,7 @@ if st.button('🚀 วิเคราะห์เนื้อหา'):
                 st.code(json_response_text)
             except Exception as e:
                 st.error(f"❌ เกิดข้อผิดพลาดในการประมวลผลข้อมูล: {e}")
+
 
 
 
