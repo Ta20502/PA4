@@ -203,8 +203,9 @@ if st.button('🚀 วิเคราะห์เนื้อหา'):
                 
                 st.dataframe(
                     summary_df_transposed, 
-                    use_container_width=True, 
-                    height=200 # ใช้ Transpose เพื่อให้ดูง่ายขึ้น
+                    use_container_width=False,
+                    column_widths=(150, 850),
+                    height=200 # 
                 )
                 
                 st.markdown("---")
@@ -262,6 +263,7 @@ if st.button('🚀 วิเคราะห์เนื้อหา'):
                 st.code(json_response_text)
             except Exception as e:
                 st.error(f"❌ เกิดข้อผิดพลาดในการประมวลผลข้อมูล: {e}")
+
 
 
 
