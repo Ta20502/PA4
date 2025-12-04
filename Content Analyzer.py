@@ -201,6 +201,12 @@ if st.button('🚀 วิเคราะห์เนื้อหา'):
                 # สร้าง DataFrame ที่ Transpose สำหรับแสดงผลและดาวน์โหลด
                 summary_df_transposed = summary_df.T.rename(columns={0: "ผลการวิเคราะห์"})
                 
+                summary_df_transposed.index = [
+                '⭐ **Summary**',
+                '🗣️ **Tone Analysis**',
+                '📚 **Readability Level**'
+                ]
+                
                 st.table(
                 summary_df_transposed
                 )
@@ -276,6 +282,7 @@ if st.button('🚀 วิเคราะห์เนื้อหา'):
                 st.code(json_response_text)
             except Exception as e:
                 st.error(f"❌ เกิดข้อผิดพลาดในการประมวลผลข้อมูล: {e}")
+
 
 
 
