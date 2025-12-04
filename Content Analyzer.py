@@ -184,7 +184,7 @@ if st.button('🚀 วิเคราะห์เนื้อหา'):
 
                 # เตรียมไฟล์ Excel ที่มี 2 Sheets
                 excel_buffer = io.BytesIO()
-                with pd.ExcelWriter(excel_buffer, engine='xlsxwriter') as writer:
+                with pd.ExcelWriter(excel_buffer) as writer:
                     # บันทึก Summary (ใช้ DataFrame ที่ Transpose แล้ว)
                     summary_df.T.rename(columns={0: "ผลการวิเคราะห์"}).to_excel(writer, sheet_name='Summary_Analysis', header=True)
                     # บันทึก Frequency
@@ -205,4 +205,5 @@ if st.button('🚀 วิเคราะห์เนื้อหา'):
                 st.markdown("**ผลลัพธ์ดิบที่ได้รับ:**")
                 st.code(json_response_text)
             except Exception as e:
+
                 st.error(f"❌ เกิดข้อผิดพลาดในการประมวลผลข้อมูล: {e}")
