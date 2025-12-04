@@ -191,7 +191,7 @@ if st.button('🚀 วิเคราะห์เนื้อหา'):
                     frequency_df.to_excel(writer, sheet_name='Keyword_Frequency', index=False) 
                 excel_buffer.seek(0)
                 
-               summary_csv = summary_df_transposed.to_csv(index=True, encoding='utf-8')
+                summary_csv = summary_df_transposed.to_csv(index=True, encoding='utf-8')
                 st.download_button(
                     label="⬇️ ดาวน์โหลดสรุปผลการวิเคราะห์ (CSV)",
                     data=summary_csv,
@@ -218,4 +218,5 @@ if st.button('🚀 วิเคราะห์เนื้อหา'):
             except Exception as e:
 
                 st.error(f"❌ เกิดข้อผิดพลาดในการประมวลผลข้อมูล: {e}")
+
 
