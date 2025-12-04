@@ -79,9 +79,9 @@ with st.sidebar:
     
     # API Key Input
     user_api_key = st.text_input(
-        "**Google AI API Key**", 
+        "**API Key**", 
         type="password",
-        help="กรุณาใส่ API Key ของคุณจาก Google AI Studio"
+        help="กรุณาใส่ API Key ของคุณ"
     )
 
     st.markdown("---")
@@ -99,7 +99,7 @@ with st.sidebar:
 
 # --- 3.2 Main Content Area ---
 
-st.title('📰 Content Analyzer: เครื่องมือวิเคราะห์เนื้อหาเชิงลึกด้วย AI')
+st.title('📰 Content Analyzer: เครื่องมือวิเคราะห์เนื้อหาเชิงลึก')
 st.markdown('ป้อน **บทความ ข่าว หรือข้อความ** ที่ต้องการวิเคราะห์เพื่อรับ **สรุป โทน และความถี่คำศัพท์สำคัญ**')
 
 # Input Text Area
@@ -123,7 +123,7 @@ if st.button('🚀 วิเคราะห์เนื้อหา'):
         current_system_prompt = create_system_prompt(top_n_keywords)
         
         # 3.4 เรียกใช้ API และประมวลผล
-        with st.spinner("⏳ กำลังวิเคราะห์เนื้อหาเชิงปริมาณด้วย Gemini..."):
+        with st.spinner("⏳ กำลังวิเคราะห์เนื้อหาเชิงปริมาณ..."):
             json_response_text = get_gemini_response(
                 api_key=user_api_key,
                 system_prompt=current_system_prompt,
@@ -157,8 +157,11 @@ if st.button('🚀 วิเคราะห์เนื้อหา'):
                     "Readability Level": [analysis_summary.get('readability_level', 'N/A')]
                 })
                 
+                # สร้าง DataFrame ที่ Transpose สำหรับแสดงผลและดาวน์โหลด
+                summary_df_transposed = summary_df.T.rename(columns={0: "ผลการวิเคราะห์"})
+                
                 st.dataframe(
-                    summary_df.T.rename(columns={0: "ผลการวิเคราะห์"}), 
+                    summary_df_transposed, 
                     use_container_width=True, 
                     height=200 # ใช้ Transpose เพื่อให้ดูง่ายขึ้น
                 )
@@ -178,19 +181,34 @@ if st.button('🚀 วิเคราะห์เนื้อหา'):
                     use_container_width=True
                 ) 
                 
-                # --- 3.6 การดาวน์โหลดผลลัพธ์ ---
+                # --- 3.6 การดาวน์โหลดผลลัพธ์ (แก้ไขปัญหา openpyxl และ NameError) ---
                 st.markdown("---")
                 st.header("3. ดาวน์โหลดผลลัพธ์")
 
-                # เตรียมไฟล์ Excel ที่มี 2 Sheets
+                # การสร้างและดาวน์โหลด Excel (มี Try/Except จัดการ ModuleNotFoundError)
                 excel_buffer = io.BytesIO()
-                with pd.ExcelWriter(excel_buffer) as writer:
-                    # บันทึก Summary (ใช้ DataFrame ที่ Transpose แล้ว)
-                    summary_df.T.rename(columns={0: "ผลการวิเคราะห์"}).to_excel(writer, sheet_name='Summary_Analysis', header=True)
-                    # บันทึก Frequency
-                    frequency_df.to_excel(writer, sheet_name='Keyword_Frequency', index=False) 
-                excel_buffer.seek(0)
+                try:
+                    # ใช้ openpyxl เพื่อเขียนไฟล์ Excel
+                    with pd.ExcelWriter(excel_buffer, engine='openpyxl') as writer:
+                        # บันทึก Summary (ใช้ DataFrame ที่ Transpose แล้ว)
+                        summary_df_transposed.to_excel(writer, sheet_name='Summary_Analysis', header=True)
+                        # บันทึก Frequency
+                        frequency_df.to_excel(writer, sheet_name='Keyword_Frequency', index=False) 
+                    excel_buffer.seek(0)
+                    
+                    # ปุ่มดาวน์โหลด Excel
+                    st.download_button(
+                        label="⬇️ ดาวน์โหลดผลลัพธ์ทั้งหมด (Excel XLSX)",
+                        data=excel_buffer,
+                        file_name='content_analysis_results.xlsx',
+                        mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                        key='download_excel'
+                    )
+                except ModuleNotFoundError:
+                    # แจ้งเตือนเมื่อไม่พบ openpyxl
+                    st.warning("⚠️ ไม่สามารถสร้างไฟล์ Excel ได้: โปรดติดตั้ง `openpyxl` (ใช้คำสั่ง: pip install openpyxl)")
                 
+                # 1. Download Summary CSV (ใช้ summary_df_transposed ที่ถูกต้องแล้ว)
                 summary_csv = summary_df_transposed.to_csv(index=True, encoding='utf-8')
                 st.download_button(
                     label="⬇️ ดาวน์โหลดสรุปผลการวิเคราะห์ (CSV)",
@@ -200,7 +218,7 @@ if st.button('🚀 วิเคราะห์เนื้อหา'):
                     key='download_summary_csv'
                 )
 
-                # 2. Download 
+                # 2. Download Frequency CSV 
                 frequency_csv = frequency_df.to_csv(index=False, encoding='utf-8')
                 st.download_button(
                     label="⬇️ ดาวน์โหลดตารางความถี่คำศัพท์ (CSV)",
@@ -212,11 +230,8 @@ if st.button('🚀 วิเคราะห์เนื้อหา'):
                 
             except (json.JSONDecodeError, ValueError) as e:
                 # Catch JSON Decode Error และ Value Error
-                st.error(f"❌ Error: AI ไม่ได้ส่งผลลัพธ์ในรูปแบบ JSON ที่ถูกต้อง หรือ JSON ไม่สมบูรณ์")
+                st.error(f"❌ Error: AI ไม่ได้ส่งผลลัพธ์ในรูปแบบ JSON ที่ถูกต้อง หรือ JSON ไม่สมบูรณ์: {e}")
                 st.markdown("**ผลลัพธ์ดิบที่ได้รับ:**")
                 st.code(json_response_text)
             except Exception as e:
-
                 st.error(f"❌ เกิดข้อผิดพลาดในการประมวลผลข้อมูล: {e}")
-
-
