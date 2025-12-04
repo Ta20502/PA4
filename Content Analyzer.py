@@ -35,13 +35,15 @@ You must perform four major tasks:
 3.  **Calculate the Frequency** of the {n} most important, non-stop-word nouns and verbs in the text.
 4.  **Assess Readability** and suggest a reader level (e.g., High School, College, General Public).
 
+{translation_instruction}
+
 Return the result *strictly* in a valid JSON object with the following three main keys:
 -   'analysis_summary': A single object containing the summary and general analysis.
     -   'summary_text': The 2-3 sentence summary.
     -   'tone_analysis': The overall sentiment (e.g., Positive, Negative, Neutral).
     -   'readability_level': The suggested reader level.
 -   'keyword_frequency': A JSON array of the {n} most important keywords.
-    -   Each element in this array must be an object with keys: 'keyword', 'frequency_count', and 'part_of_speech'.
+    -   Each element in this array must be an object with keys: 'keyword', 'frequency_count', 'part_of_speech'.
 
 DO NOT include any introductory or concluding text outside the JSON object.
 """
@@ -244,6 +246,7 @@ if st.button('🚀 วิเคราะห์เนื้อหา'):
                 st.code(json_response_text)
             except Exception as e:
                 st.error(f"❌ เกิดข้อผิดพลาดในการประมวลผลข้อมูล: {e}")
+
 
 
 
