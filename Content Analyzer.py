@@ -20,28 +20,44 @@ st.set_page_config(
 # ==============================================================================
 
 def create_system_prompt(n: int, summary_language: str) -> str:
-    """สร้าง System Prompt สำหรับ LLM เพื่อให้ได้ผลลัพธ์ JSON ตามที่กำหนด"""
+    """สร้าง System Prompt สำหรับ LLM เพื่อให้ได้ผลลัพธ์ JSON ตามที่กำหนด
+       พร้อมคำสั่งแปลและอธิบายผลการวิเคราะห์ให้เป็นภาษาที่กำหนด"""
+    
+    # 1. กำหนดคำสั่งภาษาสำหรับ Summary และการอธิบายผลลัพธ์
     if summary_language == "Thai":
         summary_instruction = "Summarize the article briefly in 2-3 sentences. **Crucially, the summary MUST be written in the THAI language (ภาษาไทย).**"
-        translation_instruction = "**The values for 'summary_text', 'tone_analysis', and 'readability_level' MUST be translated into THAI (ภาษาไทย).**"
+        
+        # *** คำสั่งบังคับให้แปลและอธิบายในภาษาไทย ***
+        analysis_instruction = "The values for 'tone_analysis' and 'readability_level' MUST be translated into THAI (ภาษาไทย) AND **must include a brief, Thai-language explanation (1-2 sentences) of the rationale** for the chosen classification."
+        
+        # ตัวอย่างผลลัพธ์ที่ต้องการจาก AI: 'เป็นกลาง/ให้ข้อมูล: บทความนี้เน้นนำเสนอข้อเท็จจริงทางเทคนิคเกี่ยวกับ LLMs โดยไม่มีอคติเชิงอารมณ์'
+        tone_example = "เช่น (Example): 'เป็นกลาง/ให้ข้อมูล: บทความเน้นนำเสนอข้อเท็จจริงทางเทคนิค'"
+        readability_example = "เช่น (Example): 'ระดับมหาวิทยาลัย: ใช้คำศัพท์เฉพาะทางและโครงสร้างประโยคซับซ้อน'"
+        
     elif summary_language == "English":
         summary_instruction = "Summarize the article briefly in 2-3 sentences. **Crucially, the summary MUST be written in the ENGLISH language.**"
-        translation_instruction = "**The values for 'summary_text', 'tone_analysis', and 'readability_level' MUST be written in ENGLISH.**"
+        
+        # *** คำสั่งบังคับให้แปลและอธิบายในภาษาอังกฤษ ***
+        analysis_instruction = "The values for 'tone_analysis' and 'readability_level' MUST be written in ENGLISH AND **must include a brief, English-language explanation (1-2 sentences) of the rationale** for the chosen classification."
+        
+        tone_example = "e.g. (Example): 'Informative/Neutral: The article focuses on presenting technical facts about LLMs without emotional bias.'"
+        readability_example = "e.g. (Example): 'College Level: Uses specialized terminology and complex sentence structures.'"
+
     return f"""
 You are an expert Content Analyzer and Linguist. Your task is to analyze the provided NEWS ARTICLE or TEXT.
 You must perform four major tasks:
 1.  **Summarize**: {summary_instruction}
-2.  **Analyze the Tone (Sentiment)** of the article (e.g., Positive, Negative, Neutral, Informative).
+2.  **Analyze the Tone (Sentiment)** of the article (e.g., Positive, Negative, Neutral, Informative). {tone_example}
 3.  **Calculate the Frequency** of the {n} most important, non-stop-word nouns and verbs in the text.
-4.  **Assess Readability** and suggest a reader level (e.g., High School, College, General Public).
+4.  **Assess Readability** and suggest a reader level (e.g., High School, College, General Public). {readability_example}
 
-{translation_instruction}
+{analysis_instruction}
 
 Return the result *strictly* in a valid JSON object with the following three main keys:
 -   'analysis_summary': A single object containing the summary and general analysis.
     -   'summary_text': The 2-3 sentence summary.
-    -   'tone_analysis': The overall sentiment (e.g., Positive, Negative, Neutral).
-    -   'readability_level': The suggested reader level.
+    -   'tone_analysis': The overall sentiment and rationale.
+    -   'readability_level': The suggested reader level and rationale.
 -   'keyword_frequency': A JSON array of the {n} most important keywords.
     -   Each element in this array must be an object with keys: 'keyword', 'frequency_count', 'part_of_speech'.
 
@@ -246,6 +262,7 @@ if st.button('🚀 วิเคราะห์เนื้อหา'):
                 st.code(json_response_text)
             except Exception as e:
                 st.error(f"❌ เกิดข้อผิดพลาดในการประมวลผลข้อมูล: {e}")
+
 
 
 
