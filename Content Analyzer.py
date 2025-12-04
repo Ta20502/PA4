@@ -22,9 +22,11 @@ st.set_page_config(
 def create_system_prompt(n: int, summary_language: str) -> str:
     """สร้าง System Prompt สำหรับ LLM เพื่อให้ได้ผลลัพธ์ JSON ตามที่กำหนด"""
     if summary_language == "Thai":
-        summary_instruction = "Summarize the article briefly in 2-3 sentences. **The summary must be in Thai.**"
+        summary_instruction = "Summarize the article briefly in 2-3 sentences. **Crucially, the summary MUST be written in the THAI language (ภาษาไทย).**"
+        translation_instruction = "**The values for 'summary_text', 'tone_analysis', and 'readability_level' MUST be translated into THAI (ภาษาไทย).**"
     elif summary_language == "English":
-        summary_instruction = "Summarize the article briefly in 2-3 sentences. **The summary must be in English.**"
+        summary_instruction = "Summarize the article briefly in 2-3 sentences. **Crucially, the summary MUST be written in the ENGLISH language.**"
+        translation_instruction = "**The values for 'summary_text', 'tone_analysis', and 'readability_level' MUST be written in ENGLISH.**"
     return f"""
 You are an expert Content Analyzer and Linguist. Your task is to analyze the provided NEWS ARTICLE or TEXT.
 You must perform four major tasks:
@@ -242,6 +244,7 @@ if st.button('🚀 วิเคราะห์เนื้อหา'):
                 st.code(json_response_text)
             except Exception as e:
                 st.error(f"❌ เกิดข้อผิดพลาดในการประมวลผลข้อมูล: {e}")
+
 
 
 
