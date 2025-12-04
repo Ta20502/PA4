@@ -89,7 +89,7 @@ with st.sidebar:
     
     # Slider สำหรับเลือก Top keyword
     top_n_keywords = st.slider(
-        "เลือกอันดับคําศัพท์สําคัญที่ต้องการแสดงผล (Top N)",
+        "เลือกอันดับคําศัพท์สําคัญที่ต้องการแสดงผล",
         min_value=10,
         max_value=50,
         value=10, # ค่าเริ่มต้น
@@ -191,12 +191,23 @@ if st.button('🚀 วิเคราะห์เนื้อหา'):
                     frequency_df.to_excel(writer, sheet_name='Keyword_Frequency', index=False) 
                 excel_buffer.seek(0)
                 
+               summary_csv = summary_df_transposed.to_csv(index=True, encoding='utf-8')
                 st.download_button(
-                    label="⬇️ ดาวน์โหลดผลลัพธ์ทั้งหมดเป็นไฟล์ Excel",
-                    data=excel_buffer,
-                    file_name='content_analysis_report.xlsx',
-                    mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-                    key='download_excel'
+                    label="⬇️ ดาวน์โหลดสรุปผลการวิเคราะห์ (CSV)",
+                    data=summary_csv,
+                    file_name='summary_analysis.csv',
+                    mime='text/csv',
+                    key='download_summary_csv'
+                )
+
+                # 2. Download 
+                frequency_csv = frequency_df.to_csv(index=False, encoding='utf-8')
+                st.download_button(
+                    label="⬇️ ดาวน์โหลดตารางความถี่คำศัพท์ (CSV)",
+                    data=frequency_csv,
+                    file_name='keyword_frequency.csv',
+                    mime='text/csv',
+                    key='download_frequency_csv'
                 )
                 
             except (json.JSONDecodeError, ValueError) as e:
@@ -207,3 +218,4 @@ if st.button('🚀 วิเคราะห์เนื้อหา'):
             except Exception as e:
 
                 st.error(f"❌ เกิดข้อผิดพลาดในการประมวลผลข้อมูล: {e}")
+
