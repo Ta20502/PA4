@@ -195,7 +195,7 @@ if st.button('🚀 วิเคราะห์เนื้อหา'):
                 summary_df = pd.DataFrame({
                     "Summary": [analysis_summary.get('summary_text', 'N/A')],
                     "Tone": [analysis_summary.get('tone_analysis', 'N/A')],
-                    "Readability Level": [analysis_summary.get('readability_level', 'N/A')]
+                    "Readability": [analysis_summary.get('readability_level', 'N/A')]
                 })
                 
                 # สร้าง DataFrame ที่ Transpose สำหรับแสดงผลและดาวน์โหลด
@@ -276,6 +276,7 @@ if st.button('🚀 วิเคราะห์เนื้อหา'):
                 st.code(json_response_text)
             except Exception as e:
                 st.error(f"❌ เกิดข้อผิดพลาดในการประมวลผลข้อมูล: {e}")
+
 
 
 
