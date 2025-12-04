@@ -184,29 +184,6 @@ if st.button('🚀 วิเคราะห์เนื้อหา'):
                 # --- 3.6 การดาวน์โหลดผลลัพธ์ (แก้ไขปัญหา openpyxl และ NameError) ---
                 st.markdown("---")
                 st.header("3. ดาวน์โหลดผลลัพธ์")
-
-                # การสร้างและดาวน์โหลด Excel (มี Try/Except จัดการ ModuleNotFoundError)
-                excel_buffer = io.BytesIO()
-                try:
-                    # ใช้ openpyxl เพื่อเขียนไฟล์ Excel
-                    with pd.ExcelWriter(excel_buffer, engine='openpyxl') as writer:
-                        # บันทึก Summary (ใช้ DataFrame ที่ Transpose แล้ว)
-                        summary_df_transposed.to_excel(writer, sheet_name='Summary_Analysis', header=True)
-                        # บันทึก Frequency
-                        frequency_df.to_excel(writer, sheet_name='Keyword_Frequency', index=False) 
-                    excel_buffer.seek(0)
-                    
-                    # ปุ่มดาวน์โหลด Excel
-                    st.download_button(
-                        label="⬇️ ดาวน์โหลดผลลัพธ์ทั้งหมด (Excel XLSX)",
-                        data=excel_buffer,
-                        file_name='content_analysis_results.xlsx',
-                        mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-                        key='download_excel'
-                    )
-                except ModuleNotFoundError:
-                    # แจ้งเตือนเมื่อไม่พบ openpyxl
-                    st.warning("⚠️ ไม่สามารถสร้างไฟล์ Excel ได้: โปรดติดตั้ง `openpyxl` (ใช้คำสั่ง: pip install openpyxl)")
                 
                 # 1. Download Summary CSV (ใช้ summary_df_transposed ที่ถูกต้องแล้ว)
                 summary_csv = summary_df_transposed.to_csv(index=True, encoding='utf-8')
@@ -235,3 +212,4 @@ if st.button('🚀 วิเคราะห์เนื้อหา'):
                 st.code(json_response_text)
             except Exception as e:
                 st.error(f"❌ เกิดข้อผิดพลาดในการประมวลผลข้อมูล: {e}")
+
