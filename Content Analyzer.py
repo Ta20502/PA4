@@ -27,11 +27,13 @@ def create_system_prompt(n: int, summary_language: str) -> str:
     if summary_language == "Thai":
         summary_instruction = "**Write a CONCISE summary in THAI language.**"
         analysis_instruction = "The values for 'tone_analysis' and 'readability_level' MUST be translated into THAI with 1-2 sentences rationale."
+        pos_instruction = "Translate 'part_of_speech' to THAI (e.g., Noun -> คำนาม, Verb -> คำกริยา)."
         tone_example = "เช่น: 'เป็นกลาง: บทความเน้นข้อเท็จจริง'"
         readability_example = "เช่น: 'ระดับมหาวิทยาลัย: มีศัพท์เฉพาะทางมาก'"
     else:
         summary_instruction = "**Write a CONCISE summary in ENGLISH language.**"
         analysis_instruction = "The values for 'tone_analysis' and 'readability_level' MUST be in ENGLISH with 1-2 sentences rationale."
+        pos_instruction = "Keep 'part_of_speech' in ENGLISH (e.g., Noun, Verb)."
         tone_example = "e.g.: 'Neutral: Focuses on technical facts.'"
         readability_example = "e.g.: 'College Level: High specialized vocab.'"
 
@@ -45,6 +47,7 @@ Rules:
 2. Tone: {tone_example}
 3. Readability: {readability_example}
 4. {analysis_instruction}
+5. {pos_instruction}
 """
 
 # ==============================================================================
@@ -173,6 +176,7 @@ if st.session_state.analysis_result:
             "text/csv",
             key="dl_freq"
         )
+
 
 
 
