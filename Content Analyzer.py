@@ -51,7 +51,7 @@ def get_gemini_response(api_key: str, system_prompt: str, user_text: str) -> str
     try:
         client = genai.Client(api_key=api_key)
         response = client.models.generate_content(
-            model="gemini-2.0-flash", 
+            model="gemini-2.5-flash-lite", 
             contents=[system_prompt, f"ARTICLE TEXT:\n\n{user_text}"],
             config={"response_mime_type": "application/json"}
         )
@@ -169,4 +169,5 @@ if st.session_state.analysis_result:
             "text/csv",
             key="dl_freq"
         )
+
 
