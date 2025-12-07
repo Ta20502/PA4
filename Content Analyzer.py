@@ -140,7 +140,7 @@ if st.session_state.analysis_result:
 
     # --- Section 2: คำศัพท์ ---
     st.header(f"2. คำศัพท์สำคัญ (Top {top_n_keywords})")
-    st.markdown("จํานวนคําศัพท์ที่ปรากฏขึ้นอยู่กับบทความที่นํามาวิเคราะห์")
+    st.markdown("จํานวนคําศัพท์ที่ต้องการจัดอันดับขึ้นอยู่กับบทความที่นํามาวิเคราะห์")
     freq_df = pd.DataFrame(keyword_frequency).head(top_n_keywords)
     # เปลี่ยนชื่อ Column ให้สวยงาม
     freq_df.columns = ['คำศัพท์ (Keyword)', 'ความถี่ (Count)', 'หน้าที่ (POS)']
@@ -177,6 +177,7 @@ if st.session_state.analysis_result:
             "text/csv",
             key="dl_freq"
         )
+
 
 
 
