@@ -90,7 +90,7 @@ st.markdown('วิเคราะห์บทความเพื่อหา 
 
 article_text = st.text_area(
     "ป้อนบทความที่ต้องการวิเคราะห์:",
-    value="Large language models (LLMs) are deep learning models trained on vast amounts of text data...",
+    value="",
     height=200
 )
 
@@ -173,6 +173,7 @@ if st.session_state.analysis_result:
             "text/csv",
             key="dl_freq"
         )
+
 
 
 
