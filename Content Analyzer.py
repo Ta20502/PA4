@@ -15,6 +15,10 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
+def clear_all():
+    st.session_state.analysis_result = None
+    st.session_state.input_text = ""
+
 # ==============================================================================
 # 1. ฟังก์ชันหลักในการสร้าง System Prompt
 # ==============================================================================
@@ -169,5 +173,6 @@ if st.session_state.analysis_result:
             "text/csv",
             key="dl_freq"
         )
+
 
 
