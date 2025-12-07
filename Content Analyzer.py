@@ -20,48 +20,27 @@ st.set_page_config(
 # ==============================================================================
 
 def create_system_prompt(n: int, summary_language: str) -> str:
-    """สร้าง System Prompt สำหรับ LLM เพื่อให้ได้ผลลัพธ์ JSON ตามที่กำหนด
-       พร้อมคำสั่งแปลและอธิบายผลการวิเคราะห์ให้เป็นภาษาที่กำหนด"""
-    
-    # 1. กำหนดคำสั่งภาษาสำหรับ Summary และการอธิบายผลลัพธ์
     if summary_language == "Thai":
-        summary_instruction = "**Write a CONCISE, NATURAL-SOUNDING, and EASY-TO-UNDERSTAND summary of the article in 2-3 sentences. Crucially, the summary MUST be written in the THAI language (ภาษาไทย).**"
-        
-        # *** คำสั่งบังคับให้แปลและอธิบายในภาษาไทย ***
-        analysis_instruction = "The values for 'tone_analysis' and 'readability_level' MUST be translated into THAI (ภาษาไทย) AND **must include a brief, Thai-language explanation (1-2 sentences) of the rationale** for the chosen classification."
-        
-        # ตัวอย่างผลลัพธ์ที่ต้องการจาก AI: 'เป็นกลาง/ให้ข้อมูล: บทความนี้เน้นนำเสนอข้อเท็จจริงทางเทคนิคเกี่ยวกับ LLMs โดยไม่มีอคติเชิงอารมณ์'
-        tone_example = "เช่น (Example): 'เป็นกลาง/ให้ข้อมูล: บทความเน้นนำเสนอข้อเท็จจริงทางเทคนิค'"
-        readability_example = "เช่น (Example): 'ระดับมหาวิทยาลัย: ใช้คำศัพท์เฉพาะทางและโครงสร้างประโยคซับซ้อน'"
-        
-    elif summary_language == "English":
-        summary_instruction = "**Write a CONCISE, NATURAL-SOUNDING, and EASY-TO-UNDERSTAND summary of the article in 2-3 sentences. Crucially, the summary MUST be written in the ENGLISH language.**"
-        
-        # *** คำสั่งบังคับให้แปลและอธิบายในภาษาอังกฤษ ***
-        analysis_instruction = "The values for 'tone_analysis' and 'readability_level' MUST be written in ENGLISH AND **must include a brief, English-language explanation (1-2 sentences) of the rationale** for the chosen classification."
-        
-        tone_example = "e.g. (Example): 'Informative/Neutral: The article focuses on presenting technical facts about LLMs without emotional bias.'"
-        readability_example = "e.g. (Example): 'College Level: Uses specialized terminology and complex sentence structures.'"
+        summary_instruction = "**Write a CONCISE summary in THAI language.**"
+        analysis_instruction = "The values for 'tone_analysis' and 'readability_level' MUST be translated into THAI with 1-2 sentences rationale."
+        tone_example = "เช่น: 'เป็นกลาง: บทความเน้นข้อเท็จจริง'"
+        readability_example = "เช่น: 'ระดับมหาวิทยาลัย: มีศัพท์เฉพาะทางมาก'"
+    else:
+        summary_instruction = "**Write a CONCISE summary in ENGLISH language.**"
+        analysis_instruction = "The values for 'tone_analysis' and 'readability_level' MUST be in ENGLISH with 1-2 sentences rationale."
+        tone_example = "e.g.: 'Neutral: Focuses on technical facts.'"
+        readability_example = "e.g.: 'College Level: High specialized vocab.'"
 
     return f"""
-You are an expert Content Analyzer and Linguist. Your task is to analyze the provided NEWS ARTICLE or TEXT.
-You must perform four major tasks:
-1.  **Summarize**: {summary_instruction}
-2.  **Analyze the Tone (Sentiment)** of the article (e.g., Positive, Negative, Neutral, Informative). {tone_example}
-3.  **Calculate the Frequency** of the {n} most important, non-stop-word nouns and verbs in the text.
-4.  **Assess Readability** and suggest a reader level (e.g., High School, College, General Public). {readability_example}
+You are an expert Content Analyzer. Return result strictly in JSON:
+- 'analysis_summary': {{'summary_text', 'tone_analysis', 'readability_level'}}
+- 'keyword_frequency': [{{'keyword', 'frequency_count', 'part_of_speech'}}] (top {n})
 
-{analysis_instruction}
-
-Return the result *strictly* in a valid JSON object with the following three main keys:
--   'analysis_summary': A single object containing the summary and general analysis.
-    -   'summary_text': The 2-3 sentence summary.
-    -   'tone_analysis': The overall sentiment and rationale.
-    -   'readability_level': The suggested reader level and rationale.
--   'keyword_frequency': A JSON array of the {n} most important keywords.
-    -   Each element in this array must be an object with keys: 'keyword', 'frequency_count', 'part_of_speech'.
-
-DO NOT include any introductory or concluding text outside the JSON object.
+Rules:
+1. {summary_instruction}
+2. Tone: {tone_example}
+3. Readability: {readability_example}
+4. {analysis_instruction}
 """
 
 # ==============================================================================
@@ -69,220 +48,124 @@ DO NOT include any introductory or concluding text outside the JSON object.
 # ==============================================================================
 
 def get_gemini_response(api_key: str, system_prompt: str, user_text: str) -> str | None:
-    """เรียกใช้ Google Gemini API เพื่อวิเคราะห์ข้อความและรับผลลัพธ์เป็น JSON"""
-    if not api_key:
-        st.error("❌ โปรดใส่ API Key ในช่อง 'API key' ด้านซ้ายก่อน")
-        return None
-
     try:
         client = genai.Client(api_key=api_key)
-        model = "gemini-2.5-flash"
-        
         response = client.models.generate_content(
-            model=model,
+            model="gemini-2.0-flash", # หรือ gemini-1.5-flash ตามที่ท่านใช้งาน
             contents=[system_prompt, f"ARTICLE TEXT:\n\n{user_text}"],
-            config={"response_mime_type": "application/json"} # สั่งให้ LLM สร้างผลลัพธ์เป็น JSON
+            config={"response_mime_type": "application/json"}
         )
-        
         return response.text
-
-    except APIError as e:
-        st.error(f"❌ เกิดข้อผิดพลาดในการเรียกใช้ API: โปรดตรวจสอบ API Key ของคุณ ({e})")
-        return None
     except Exception as e:
-        st.error(f"❌ เกิดข้อผิดพลาดที่ไม่คาดคิด: {e}")
+        st.error(f"❌ Error: {e}")
         return None
 
 # ==============================================================================
 # 3. ส่วนหลักของ Streamlit (Main App)
 # ==============================================================================
 
-# --- 3.1 Sidebar สำหรับ API Key และการตั้งค่า ---
+# --- Initialization of Session State ---
+# ส่วนสำคัญ: ใช้เก็บข้อมูลวิเคราะห์ไม่ให้หายเมื่อมีการ Rerun (เช่นตอนกด Download)
+if 'analysis_result' not in st.session_state:
+    st.session_state.analysis_result = None
+
 with st.sidebar:
     st.title("⚙️ การตั้งค่าระบบ")
-    
-    # API Key Input
-    user_api_key = st.text_input(
-        "**API Key**", 
-        type="password",
-        help="กรุณาใส่ API Key ของคุณจาก Google AI Studio"
-    )
-
+    user_api_key = st.text_input("**API Key**", type="password")
     st.markdown("---")
-    st.title("🔢 การตั้งค่าการวิเคราะห์คำศัพท์")
+    top_n_keywords = st.slider("เลือกจำนวนคำศัพท์สำคัญ", 10, 50, 10, 5)
+    summary_language = st.selectbox("เลือกภาษาสำหรับวิเคราะห์", ["English", "Thai"])
     
-    # Slider สำหรับเลือก Top keyword
-    top_n_keywords = st.slider(
-        "เลือกอันดับคําศัพท์สําคัญที่ต้องการแสดงผล",
-        min_value=10,
-        max_value=50,
-        value=10, # ค่าเริ่มต้น
-        step=5,
-    )
-    st.info(f"แสดงผลลัพธ์คำศัพท์สำคัญ {top_n_keywords} อันดับ")
+    # ปุ่มสำหรับล้างผลลัพธ์
+    if st.button("🗑️ ล้างข้อมูลการวิเคราะห์"):
+        st.session_state.analysis_result = None
+        st.rerun()
 
-    st.markdown("---")
-    st.title("🗣️ การตั้งค่าภาษา")
-    
-    # : Select box สำหรับเลือกภาษาที่ต้องการสรุป**
-    summary_language = st.selectbox(
-        "เลือกภาษาสำหรับวิเคราะห์",
-        options=["English", "Thai"],
-        index=0, # English เป็นค่าเริ่มต้น
-        help="ผลลัพธ์จะแปลตามภาษาที่เลือก"
-    )
-    # แปลงค่าที่เลือกจากภาษาไทยเป็นค่าที่จะใช้ใน prompt
-    if "Thai" in summary_language:
-        lang_code = "Thai"
-    elif "English" in summary_language:
-        lang_code = "English"
+st.title('📰 Content Analyzer')
+st.markdown('วิเคราะห์บทความเพื่อหา **สรุป, โทน และคำศัพท์สำคัญ**')
 
-# --- 3.2 Main Content Area ---
-
-st.title('📰 Content Analyzer: เครื่องมือวิเคราะห์เนื้อหาเชิงลึก')
-st.markdown('ป้อน **บทความ ข่าว หรือข้อความ** ที่ต้องการวิเคราะห์เพื่อ **สรุป โทน และความถี่คำศัพท์สำคัญ**')
-
-# Input Text Area
 article_text = st.text_area(
-    "ป้อนบทความ ข่าว หรือข้อความที่ต้องการวิเคราะห์ที่นี่:",
-    value="Large language models (LLMs) are deep learning models trained on vast amounts of text data. They can understand, summarize, and generate human-like text, making them revolutionary tools for various NLP applications. The development of LLMs requires immense computational resources, particularly high-end GPUs. Despite their power, LLMs still face challenges related to factual accuracy and ethical bias.",
-    height=250,
-    placeholder="ตัวอย่าง: ป้อนบทความภาษาอังกฤษหรือภาษาไทยเพื่อเริ่มต้น"
+    "ป้อนบทความที่ต้องการวิเคราะห์:",
+    value="Large language models (LLMs) are deep learning models trained on vast amounts of text data...",
+    height=200
 )
 
-# Submit Button
+# --- ปุ่มกดวิเคราะห์ ---
 if st.button('🚀 วิเคราะห์เนื้อหา'):
-    
-    # 3.3 การตรวจสอบข้อมูลเริ่มต้น
     if not user_api_key:
-        st.error("❌ โปรดใส่ **API Key** ในช่อง 'API key' ด้านซ้ายก่อน")
-    elif not article_text or article_text.strip() == "":
-        st.error("❌ โปรดป้อนข้อความบทความเพื่อทำการวิเคราะห์")
+        st.error("❌ โปรดใส่ API Key ใน Sidebar")
+    elif not article_text.strip():
+        st.error("❌ โปรดป้อนเนื้อหา")
     else:
-        # สร้าง SYSTEM_PROMPT ด้วยค่า N ที่ผู้ใช้เลือก
-        current_system_prompt = create_system_prompt(top_n_keywords, lang_code)
-        
-        # 3.4 เรียกใช้ API และประมวลผล
-        with st.spinner("⏳ กำลังวิเคราะห์เนื้อหาเชิงปริมาณ..."):
-            json_response_text = get_gemini_response(
-                api_key=user_api_key,
-                system_prompt=current_system_prompt,
-                user_text=article_text
-            )
+        current_system_prompt = create_system_prompt(top_n_keywords, summary_language)
+        with st.spinner("⏳ กำลังประมวลผล..."):
+            raw_json = get_gemini_response(user_api_key, current_system_prompt, article_text)
+            if raw_json:
+                try:
+                    # เก็บผลลัพธ์ลง Session State
+                    st.session_state.analysis_result = json.loads(raw_json)
+                except Exception as e:
+                    st.error(f"JSON Parsing Error: {e}")
 
-        if json_response_text:
-            try:
-                # แปลงผลลัพธ์ JSON เป็น Python Dictionary
-                result = json.loads(json_response_text)
-                
-                analysis_summary = result.get('analysis_summary', {})
-                keyword_frequency = result.get('keyword_frequency', [])
-                
-                # ตรวจสอบความสมบูรณ์ของคีย์หลัก
-                if not analysis_summary or not keyword_frequency:
-                    st.warning("⚠️ ผลลัพธ์ JSON ไม่สมบูรณ์: อาจขาด 'analysis_summary' หรือ 'keyword_frequency'")
-                    st.code(json_response_text)
-                    raise ValueError("JSON Incomplete") 
+# ==============================================================================
+# 4. ส่วนการแสดงผล (ดึงจาก Session State)
+# ==============================================================================
 
-                st.success("✅ การวิเคราะห์เสร็จสมบูรณ์")
-                
-                # --- 3.5 การแสดงผลลัพธ์ ---
-                
-                ## 1. ตารางสรุปและวิเคราะห์โทน (Summary & Tone)
-                st.header("1. สรุปและวิเคราะห์ภาพรวม")
-                
-                summary_df = pd.DataFrame({
-                    "Summary": [analysis_summary.get('summary_text', 'N/A')],
-                    "Tone": [analysis_summary.get('tone_analysis', 'N/A')],
-                    "Readability": [analysis_summary.get('readability_level', 'N/A')]
-                })
-                
-                # สร้าง DataFrame ที่ Transpose สำหรับแสดงผลและดาวน์โหลด
-                summary_df_transposed = summary_df.T.rename(columns={0: "ผลการวิเคราะห์"})
-                
-                summary_df_transposed.index = [
-                '⭐ **Summary**',
-                '🗣️ **Tone Analysis**',
-                '📚 **Readability Level**'
-                ]
-                
-                st.table(
-                summary_df_transposed
-                )
-            
-                st.markdown("---")
-        
-                ## 2. ตารางความถี่คำศัพท์สำคัญ (Keyword Frequency)
-                st.header(f"2. การวิเคราะห์ความถี่คำศัพท์สำคัญ (Top {top_n_keywords} คำ)")
-                
-                frequency_df = pd.DataFrame(keyword_frequency)
-                frequency_df.columns = ['คำศัพท์', 'ความถี่ที่ปรากฏ', 'ส่วนของคำพูด (POS)']
-                frequency_df.insert(0, 'ลำดับ', range(1, 1 + len(frequency_df)))
+# เช็คว่าใน Session State มีข้อมูลอยู่ไหม ถ้ามีให้วาด UI ออกมา
+if st.session_state.analysis_result:
+    result = st.session_state.analysis_result
+    analysis_summary = result.get('analysis_summary', {})
+    keyword_frequency = result.get('keyword_frequency', [])
 
-                st.dataframe(
-                    frequency_df, 
-                    hide_index=True, 
-                    use_container_width=True
-                ) 
+    st.success("✅ ผลการวิเคราะห์ล่าสุด")
 
-                st.header("3. แผนภูมิความถี่คำศัพท์")
+    # --- Section 1: สรุป ---
+    st.header("1. สรุปและวิเคราะห์ภาพรวม")
+    summary_df = pd.DataFrame({
+        "เนื้อหา": [
+            analysis_summary.get('summary_text', ''),
+            analysis_summary.get('tone_analysis', ''),
+            analysis_summary.get('readability_level', '')
+        ]
+    }, index=['⭐ Summary', '🗣️ Tone Analysis', '📚 Readability Level'])
+    
+    st.table(summary_df)
 
-                # ใช้ st.bar_chart เพื่อแสดงผลลัพธ์ความถี่คำศัพท์
-                # โดยกำหนดให้แกน X เป็น 'คำศัพท์' และแกน Y เป็น 'ความถี่ที่ปรากฏ'
-                st.bar_chart(
-                    frequency_df.set_index('คำศัพท์')[['ความถี่ที่ปรากฏ']], 
-                    use_container_width=True
-                )
-                
-                # --- 3.6 การดาวน์โหลดผลลัพธ์  ---
-                st.markdown("---")
-                st.header("3. ดาวน์โหลดผลลัพธ์")
-                
-                # 1. Download Summary CSV (ใช้ summary_df_transposed ที่ถูกต้องแล้ว)
-                summary_csv = summary_df_transposed.to_csv(index=True, encoding='utf-8')
-                st.download_button(
-                    label="⬇️ ดาวน์โหลดสรุปผลการวิเคราะห์ (CSV)",
-                    data=summary_csv,
-                    file_name='summary_analysis.csv',
-                    mime='text/csv',
-                    key='download_summary_csv'
-                )
+    # --- Section 2: คำศัพท์ ---
+    st.header(f"2. คำศัพท์สำคัญ (Top {len(keyword_frequency)})")
+    freq_df = pd.DataFrame(keyword_frequency)
+    # เปลี่ยนชื่อ Column ให้สวยงาม
+    freq_df.columns = ['คำศัพท์ (Keyword)', 'ความถี่ (Count)', 'หน้าที่ (POS)']
+    
+    col1, col2 = st.columns([1, 1])
+    with col1:
+        st.dataframe(freq_df, use_container_width=True, hide_index=True)
+    with col2:
+        st.bar_chart(freq_df.set_index('คำศัพท์ (Keyword)')['ความถี่ (Count)'])
 
-                # 2. Download Frequency CSV 
-                frequency_csv = frequency_df.to_csv(index=False, encoding='utf-8')
-                st.download_button(
-                    label="⬇️ ดาวน์โหลดตารางความถี่คำศัพท์ (CSV)",
-                    data=frequency_csv,
-                    file_name='keyword_frequency.csv',
-                    mime='text/csv',
-                    key='download_frequency_csv'
-                )
-                
-            except (json.JSONDecodeError, ValueError) as e:
-                # Catch JSON Decode Error และ Value Error
-                st.error(f"❌ Error: AI ไม่ได้ส่งผลลัพธ์ในรูปแบบ JSON ที่ถูกต้อง หรือ JSON ไม่สมบูรณ์: {e}")
-                st.markdown("**ผลลัพธ์ดิบที่ได้รับ:**")
-                st.code(json_response_text)
-            except Exception as e:
-                st.error(f"❌ เกิดข้อผิดพลาดในการประมวลผลข้อมูล: {e}")
+    # --- Section 3: ดาวน์โหลด ---
+    st.markdown("---")
+    st.header("3. ดาวน์โหลดข้อมูล")
+    
+    # ดาวน์โหลดสรุป
+    summary_csv = summary_df.to_csv().encode('utf-8-sig')
+    # ดาวน์โหลดคำศัพท์
+    freq_csv = freq_df.to_csv(index=False).encode('utf-8-sig')
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    dl_col1, dl_col2 = st.columns(2)
+    with dl_col1:
+        st.download_button(
+            "⬇️ Download Summary (CSV)",
+            summary_csv,
+            "analysis_summary.csv",
+            "text/csv",
+            key="dl_sum"
+        )
+    with dl_col2:
+        st.download_button(
+            "⬇️ Download Keywords (CSV)",
+            freq_csv,
+            "keywords.csv",
+            "text/csv",
+            key="dl_freq"
+        )
