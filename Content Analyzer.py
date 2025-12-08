@@ -73,8 +73,6 @@ def get_gemini_response(api_key: str, system_prompt: str, user_text: str) -> str
 
 # --- Initialization of Session State ---
 #ใช้เก็บข้อมูลวิเคราะห์ไม่ให้หายเมื่อมีการ Rerun (เช่นตอนกด Download)
-if 'analysis_result' not in st.session_state:
-    st.session_state.analysis_result = None
 if 'article_input' not in st.session_state:
     st.session_state.article_input = ""
 
@@ -88,6 +86,8 @@ with st.sidebar:
     # ปุ่มสำหรับล้างผลลัพธ์
     if st.button("🗑️ ล้างข้อมูล"):
         st.session_state.article_input = ""
+        if "current_text" in st.session_state:
+            st.session_state.current_text = ""
         st.rerun()
 
 st.title('📰 Content Analyzer')
@@ -182,6 +182,7 @@ if st.session_state.analysis_result:
             "text/csv",
             key="dl_freq"
         )
+
 
 
 
