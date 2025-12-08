@@ -72,7 +72,7 @@ def get_gemini_response(api_key: str, system_prompt: str, user_text: str) -> str
 # ==============================================================================
 
 # --- Initialization of Session State ---
-ใช้เก็บข้อมูลวิเคราะห์ไม่ให้หายเมื่อมีการ Rerun (เช่นตอนกด Download)
+#ใช้เก็บข้อมูลวิเคราะห์ไม่ให้หายเมื่อมีการ Rerun (เช่นตอนกด Download)
 if 'analysis_result' not in st.session_state:
     st.session_state.analysis_result = None
 if 'article_input' not in st.session_state:
@@ -182,6 +182,7 @@ if st.session_state.analysis_result:
             "text/csv",
             key="dl_freq"
         )
+
 
 
 
