@@ -84,7 +84,7 @@ with st.sidebar:
     summary_language = st.selectbox("เลือกภาษาสำหรับวิเคราะห์", ["English", "Thai"])
     
     # ปุ่มสำหรับล้างผลลัพธ์
-    if st.button("🗑️ ล้างข้อมูล"):
+    if st.button("🗑️ ล้างบทความที่ป้อน"):
         st.session_state.article_input = ""
         if "current_text" in st.session_state:
             st.session_state.current_text = ""
@@ -182,6 +182,7 @@ if st.session_state.analysis_result:
             "text/csv",
             key="dl_freq"
         )
+
 
 
 
