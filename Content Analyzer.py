@@ -73,8 +73,8 @@ def get_gemini_response(api_key: str, system_prompt: str, user_text: str) -> str
 
 # --- Initialization of Session State ---
 # ส่วนสำคัญ: ใช้เก็บข้อมูลวิเคราะห์ไม่ให้หายเมื่อมีการ Rerun (เช่นตอนกด Download)
-if 'analysis_result' not in st.session_state:
-    st.session_state.analysis_result = None
+if 'article_input' not in st.session_state:
+    st.session_state.article_input = ""
 
 with st.sidebar:
     st.title("⚙️ การตั้งค่าระบบ")
@@ -84,8 +84,8 @@ with st.sidebar:
     summary_language = st.selectbox("เลือกภาษาสำหรับวิเคราะห์", ["English", "Thai"])
     
     # ปุ่มสำหรับล้างผลลัพธ์
-    if st.button("🗑️ ล้างข้อมูลการวิเคราะห์"):
-        st.session_state.analysis_result = None
+    if st.button("🗑️ ล้างข้อมูล"):
+        st.session_state.article_input = ""
         st.rerun()
 
 st.title('📰 Content Analyzer')
@@ -93,9 +93,12 @@ st.markdown('วิเคราะห์บทความเพื่อหา 
 
 article_text = st.text_area(
     "ป้อนบทความที่ต้องการวิเคราะห์:",
-    value="",
-    height=200
+    value=st.session_state.article_input,
+    height=200,
+    key="current_text"
 )
+
+st.session_state.article_input = article_text
 
 # --- ปุ่มกดวิเคราะห์ ---
 if st.button('🚀 วิเคราะห์เนื้อหา'):
@@ -177,6 +180,7 @@ if st.session_state.analysis_result:
             "text/csv",
             key="dl_freq"
         )
+
 
 
 
